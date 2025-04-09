@@ -1,0 +1,16 @@
+app:
+  name: pulseReceiver
+  version: 1.0.0
+
+logger:
+  log_level: ${LOG_LEVEL}
+  report-caller: false
+
+http:
+  port: ${HTTP_PORT}
+  timeout: 20s
+  
+  otlp:
+    url: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+    protocol: grpc
+    timeout: 20s
