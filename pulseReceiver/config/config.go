@@ -7,7 +7,7 @@ var cfg *Config
 type (
 	Config struct {
 		App         `yaml:"app"`
-		HTTP        `yaml:"http"`
+		Server      `yaml:"server"`
 		Log         `yaml:"logger"`
 		Integration `yaml:"integration"`
 	}
@@ -18,13 +18,14 @@ type (
 	}
 
 	Log struct {
-		Level        string `env-required:"true" yaml:"log-level"   env:"LOG_LEVEL"`
+		Level        string `env-required:"true" yaml:"log_level"   env:"LOG_LEVEL"`
 		ReportCaller bool   `yaml:"report-caller" default:"false"`
 	}
 
-	HTTP struct {
-		Port    string        `env-required:"true" yaml:"port" env:"HTTP_PORT"`
-		Timeout time.Duration `env-required:"true" yaml:"timeout"`
+	Server struct {
+		Port         string        `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+		ReadTimeout  time.Duration `yaml:"readTimeout" default:"10s"`
+		WriteTimeout time.Duration `yaml:"writeTimeout" default:"10s"`
 	}
 
 	Integration struct {

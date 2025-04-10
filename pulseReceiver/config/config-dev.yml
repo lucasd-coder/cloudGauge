@@ -3,16 +3,15 @@ app:
   version: 1.0.0
 
 logger:
-  log_level: ${LOG_LEVEL}
-  report-caller: false
+  log_level: info
 
 server:
-  port: ${HTTP_PORT}
+  port: 8085
   readTimeout: 10s
   writeTimeout: 10s
 
 integration:
   otlp:
-    url: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+    url: localhost:4317
     protocol: grpc
     timeout: 20s

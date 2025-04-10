@@ -6,6 +6,7 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/lucasd-coder/pulseReceiver/config"
+	"github.com/lucasd-coder/pulseReceiver/internal/app"
 )
 
 var cfg config.Config
@@ -26,4 +27,5 @@ func main() {
 		log.Fatalf("Config error: %v", err)
 	}
 	config.ExportConfig(&cfg)
+	app.Run(&cfg)
 }
