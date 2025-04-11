@@ -2,56 +2,61 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
-	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
-	"github.com/go-chi/chi/v5"
-	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/lucasd-coder/pulseReceiver/config"
-	"github.com/lucasd-coder/pulseReceiver/internal/controller"
+	"github.com/lucasd-coder/pulseReceiver/internal/provider/logger"
+	"github.com/lucasd-coder/pulseReceiver/internal/server"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
-	"github.com/lucasd-coder/pulseReceiver/internal/shared/logger"
-	"github.com/lucasd-coder/pulseReceiver/internal/shared/middleware"
+	"github.com/lucasd-coder/pulseReceiver/internal/subscription"
 )
 
 func Run(cfg *config.Config) {
 	optlogger := shared.NewOptLogger(cfg)
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	logger := logger.NewLogger(optlogger)
 	logDefault := logger.GetLog()
 	slog.SetDefault(logDefault)
+	var wg sync.WaitGroup
 
-	r := chi.NewRouter()
-	r.Use(chiMiddleware.Recoverer)
-	r.Use(chiMiddleware.RequestID)
-	r.Use(chiMiddleware.RealIP)
-	r.Use(middleware.LoggerMiddleware)
+	// starting the server
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := server.Start(ctx, cfg); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	logDefault.Info(fmt.Sprintf("Started listening... address[:%s]", cfg.Port))
+	// starting the subscriptions
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := subscription.Start(ctx); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-	controller := controller.NewRouter()
+	// channel to lister for OS signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	r.Mount("/", controller)
-	r.Mount("/debug", chiMiddleware.Profiler())
+	// wait for a signals
+	<-sigChan
+	logDefault.Info("Received shutdown signal")
 
-	s := &http.Server{
-		Addr:         ":" + cfg.Port,
-		Handler:      r,
-		ReadTimeout:  cfg.ReadTimeout,
-		WriteTimeout: cfg.WriteTimeout,
-	}
+	// cancel the context to signal all goroutine to stop
+	cancel()
 
-	if err := s.ListenAndServe(); err != nil {
-		log.Panic(err)
-		return
-	}
+	// wait for all goroutines to complete
+	wg.Wait()
 
-	if err := s.Close(); err != nil {
-		logDefault.Error(err.Error())
-		return
-	}
+	logDefault.Info("shutdown complete")
 }

@@ -4,15 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/lucasd-coder/pulseReceiver/internal/provider/logger"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
-	"github.com/lucasd-coder/pulseReceiver/internal/shared/logger"
 )
 
 type Subscription struct {
@@ -58,6 +55,13 @@ func NewSubscription(
 			logger.FromContext(ctx).Error("error starting for subscription", opt)
 		}
 	})
+
+	logger.FromContext(ctx).Info("Created", "Consumer", consumer)
+	if err := consumer.SubscribeTopics([]string{opt.TopicName},
+		rebalanceCallback); err != nil {
+		logger.FromContext(ctx).Error("Error on subscribing to topics", "Error", err)
+		return nil, cleanup, err
+	}
 	return &Subscription{
 		consumer: consumer,
 		handler:  h,
@@ -70,24 +74,21 @@ func NewSubscription(
 func (s *Subscription) Start(ctx context.Context) error {
 	var wgReceiver sync.WaitGroup
 	var wgWorker sync.WaitGroup
-	stop := make(chan struct{})
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	wgReceiver.Add(1)
 	go s.receiver(ctx, &wgReceiver)
 
 	wgWorker.Add(s.opt.WorkTask)
 	for i := 0; i < s.opt.WorkTask; i++ {
-		go s.subscribe(ctx, &wgWorker, stop)
+		go s.subscribe(ctx, &wgWorker)
 	}
-	// Aguarde os sinais para encerrar
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigchan
 
 	go func() {
 		wgReceiver.Wait()
 		close(s.msg)
-		close(stop)
 	}()
 
 	wgWorker.Wait()
@@ -98,14 +99,13 @@ func (s *Subscription) receiver(ctx context.Context, wg *sync.WaitGroup) {
 	logger.FromContext(ctx).Info("start receiving message")
 	defer wg.Done()
 
-	sigchan := make(chan os.Signal, 1)
 	consumed := 0
 	paused := false
 
 	for {
 		select {
-		case sig := <-sigchan:
-			logger.FromContext(ctx).Infof("Caught signal %v", sig)
+		case <-ctx.Done():
+			logger.FromContext(ctx).Info("context canceled, closing receiver")
 			return
 		default:
 			{
@@ -116,7 +116,6 @@ func (s *Subscription) receiver(ctx context.Context, wg *sync.WaitGroup) {
 					}
 					switch msg := ev.(type) {
 					case *kafka.Message:
-
 						consumed++
 						if msg != nil {
 							s.msg <- msg
@@ -136,7 +135,6 @@ func (s *Subscription) receiver(ctx context.Context, wg *sync.WaitGroup) {
 						}
 					}
 				} else {
-					time.Sleep(1 * time.Minute)
 					if len(s.msg) == 0 {
 						consumed = 0
 						paused = false
@@ -160,7 +158,7 @@ func (s *Subscription) doCommit(ctx context.Context) error {
 	return err
 }
 
-func (s *Subscription) subscribe(ctx context.Context, wg *sync.WaitGroup, stop <-chan struct{}) {
+func (s *Subscription) subscribe(ctx context.Context, wg *sync.WaitGroup) {
 	defer func() {
 		if r := recover(); r != nil {
 			logger.FromContext(ctx).Errorf("recovered from panic: %v", r)
@@ -169,22 +167,15 @@ func (s *Subscription) subscribe(ctx context.Context, wg *sync.WaitGroup, stop <
 	}()
 
 	var msgCount int64
-	stopProcessing := false
 
 	batchTimeout := 2 * time.Second
 	timer := time.NewTimer(batchTimeout)
 	defer timer.Stop()
 
-	sigchan := make(chan os.Signal, 1)
-	signal.Notify(sigchan, syscall.SIGINT, syscall.SIGTERM)
-
-	for !stopProcessing {
+	for {
 		select {
-		case <-stop:
-			stopProcessing = true
-		case sig := <-sigchan:
-			logger.FromContext(ctx).Infof("Caught signal %v: terminating", sig)
-			stopProcessing = true
+		case <-ctx.Done():
+			logger.FromContext(ctx).Info("context canceled, closing")
 		case <-timer.C:
 			if msgCount != 0 {
 				if err := s.doCommit(ctx); err != nil {
@@ -193,7 +184,11 @@ func (s *Subscription) subscribe(ctx context.Context, wg *sync.WaitGroup, stop <
 				msgCount = 0
 			}
 			timer.Reset(batchTimeout)
-		case msg := <-s.msg:
+		case msg, ok := <-s.msg:
+			if !ok {
+				logger.FromContext(ctx).Info("message channel closed, exiting worker")
+				return
+			}
 			if err := s.handler(ctx, msg.Value); err != nil {
 				logger.FromContext(ctx).Error("Error on processing message", "Error", err)
 				continue

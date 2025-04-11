@@ -30,6 +30,16 @@ type (
 
 	Integration struct {
 		OpenTelemetry `env-required:"true" yaml:"otlp"`
+		Kafka         `env-required:"true" yaml:"kafka"`
+	}
+
+	Kafka struct {
+		URL        string `env-required:"true" yaml:"url"`
+		GroupId    string `env-required:"true" yaml:"groupId"`
+		WorkTask   int    `env-required:"true" yaml:"workTask"`
+		BatchSize  int    `env-required:"true" yaml:"batchSize"`
+		BatchLimit int    `env-required:"true" yaml:"batchLimit"`
+		Poll       int    `env-required:"true" yaml:"poll"`
 	}
 
 	OpenTelemetry struct {

@@ -15,3 +15,10 @@ integration:
     url: localhost:4317
     protocol: grpc
     timeout: 20s
+  kafka:
+    url: localhost:29092
+    groupId: pulse-receiver
+    workTask: 30
+    batchSize: 10
+    batchLimit: 500
+    poll: 100
