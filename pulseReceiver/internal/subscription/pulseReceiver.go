@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/lucasd-coder/pulseReceiver/config"
+	"github.com/lucasd-coder/pulseReceiver/internal/inject"
 	"github.com/lucasd-coder/pulseReceiver/internal/provider/kafka"
-	"github.com/lucasd-coder/pulseReceiver/internal/provider/logger"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
 )
 
@@ -15,7 +15,9 @@ func PulseReceiverEvent(ctx context.Context) error {
 	topicName := "aggregated-pulses"
 	opt := shared.NewOptions(cfg, topicName)
 
-	start, cleanup, err := kafka.NewSubscription(ctx, opt, ProcesseMessage)
+	p := inject.InitializeProcessor()
+
+	start, cleanup, err := kafka.NewSubscription(ctx, opt, p.ProcessUsageAggregation)
 	if err != nil {
 		return err
 	}
@@ -23,10 +25,5 @@ func PulseReceiverEvent(ctx context.Context) error {
 	if err := start.Start(ctx); err != nil {
 		return err
 	}
-	return nil
-}
-
-func ProcesseMessage(ctx context.Context, msg []byte) error {
-	logger.FromContext(ctx).Info("Receiver message", "Message", msg)
 	return nil
 }

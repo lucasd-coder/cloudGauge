@@ -11,6 +11,7 @@ import (
 
 	"github.com/lucasd-coder/pulseReceiver/config"
 	"github.com/lucasd-coder/pulseReceiver/internal/provider/logger"
+	"github.com/lucasd-coder/pulseReceiver/internal/provider/postgres"
 	"github.com/lucasd-coder/pulseReceiver/internal/server"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
 	"github.com/lucasd-coder/pulseReceiver/internal/subscription"
@@ -25,6 +26,12 @@ func Run(cfg *config.Config) {
 	logDefault := logger.GetLog()
 	slog.SetDefault(logDefault)
 	var wg sync.WaitGroup
+
+	// Postgres config
+	postgres.StartDB(ctx, cfg)
+
+	// Postgres closes
+	defer postgres.CloseConn()
 
 	// starting the server
 	wg.Add(1)

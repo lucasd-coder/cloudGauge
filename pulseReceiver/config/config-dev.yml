@@ -18,7 +18,17 @@ integration:
   kafka:
     url: localhost:29092
     groupId: pulse-receiver
-    workTask: 30
+    workTask: 15
     batchSize: 10
     batchLimit: 500
     poll: 100
+  
+  postgres:
+    host: localhost
+    port: 5432
+    username: docker
+    password: docker
+    dbname: cloudgauge
+    schema: pulsereceiver
+    maxIdleConns: 10
+    MaxOpenConns: 100

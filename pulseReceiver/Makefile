@@ -1,5 +1,7 @@
 GOPATH ?= go env GOPATH
 
+DOCKER_COMPOSE = docker compose
+
 .PHONY: generate_mocks run_application test coverage go_tidy
 
 generate_mocks:
@@ -21,9 +23,20 @@ go_tidy:
 .PHONY: docker_dev
 
 docker_dev:
-	@docker-compose -f docker-compose.yml up -d
+	$(DOCKER_COMPOSE) up -d
+	sleep 20
+	$(DOCKER_COMPOSE) exec kafka bash /create-topics.sh
 
 .PHONY: run_application
 
 run_application:
 	GO_PROFILE=dev GO111MODULE=on go run -race ./cmd/app/main.go
+
+.PHONY: wire-gen
+
+wire-gen:
+	@command -v wire >/dev/null 2>&1 || { \
+		echo "wire não encontrado. Instalando..."; \
+		go install github.com/google/wire/cmd/wire@latest; \
+	}
+	wire ./internal/inject

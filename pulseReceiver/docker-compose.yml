@@ -1,6 +1,6 @@
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.2.9
+    image: confluentinc/cp-zookeeper:7.9.0
     ports:
       - "22181:2181"
     environment:
@@ -8,7 +8,7 @@ services:
       ZOOKEEPER_TICK_TIME: 4000
       KAFKA_OPTS: -Djute.maxbuffer=50000000
   kafka:
-    image: confluentinc/cp-kafka:7.2.9
+    image: confluentinc/cp-kafka:7.9.0
     depends_on:
       - zookeeper
     ports:
@@ -18,10 +18,12 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_OPTS: -Djute.maxbuffer=50000000
+      KAFKA_CREATE_TOPICS: "aggregated-pulses"
+    volumes:
+      - ./infra/kafka/create-topics.sh:/create-topics.sh
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     depends_on:
@@ -32,3 +34,23 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+  
+  postgres:
+    image: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=cloudgauge
+      - SCHEMA=pulsereceiver
+      - ANON=web_anon
+      - AUTHENTICATOR=authenticator
+    volumes:            
+      - ./infra/postgres/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
+      - postgres_data:/var/lib/postgresql/data/
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
+volumes:
+  postgres_data:

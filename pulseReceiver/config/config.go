@@ -31,6 +31,7 @@ type (
 	Integration struct {
 		OpenTelemetry `env-required:"true" yaml:"otlp"`
 		Kafka         `env-required:"true" yaml:"kafka"`
+		Postgres      `env-required:"true" yaml:"postgres"`
 	}
 
 	Kafka struct {
@@ -40,6 +41,17 @@ type (
 		BatchSize  int    `env-required:"true" yaml:"batchSize"`
 		BatchLimit int    `env-required:"true" yaml:"batchLimit"`
 		Poll       int    `env-required:"true" yaml:"poll"`
+	}
+
+	Postgres struct {
+		Host         string `env-required:"true" yaml:"host" env:"HOST_DB"`
+		PostgresPort int    `env-required:"true" yaml:"port" env:"PORT_DB"`
+		Username     string `env-required:"true" yaml:"username" env:"USERNAME_DB"`
+		Password     string `env-required:"true" yaml:"password" env:"PASSWORD_DB"`
+		Dbname       string `yaml:"dbname"`
+		Schema       string `yaml:"schema"`
+		MaxIdleConns int    `yaml:"maxIdleConns"`
+		MaxOpenConns int    `yaml:"MaxOpenConns"`
 	}
 
 	OpenTelemetry struct {

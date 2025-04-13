@@ -1,0 +1,9 @@
+POST http://localhost:8085/usage HTTP/1.1
+Content-Type: application/json
+
+{
+  "tenant": "Lucas22",
+  "product_sku": "vm",
+  "used_amount": 200,
+  "use_unity": "GB x seg"
+}

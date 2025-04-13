@@ -45,7 +45,7 @@ func NewSubscription(
 		"auto.offset.reset":     "latest",
 		"enable.auto.commit":    false,
 		"max.poll.interval.ms":  60000,
-		"debug":                 "consumer",
+		// "debug":                 "consumer",
 	})
 	if err != nil {
 		return nil, cleanup, err
@@ -175,7 +175,7 @@ func (s *Subscription) subscribe(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case <-ctx.Done():
-			logger.FromContext(ctx).Info("context canceled, closing")
+			logger.FromContext(ctx).Info("context canceled, closing subscribe")
 		case <-timer.C:
 			if msgCount != 0 {
 				if err := s.doCommit(ctx); err != nil {
