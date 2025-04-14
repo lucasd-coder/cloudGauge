@@ -72,6 +72,8 @@ make wire-gen
 
 ### 📁 Estrutura de Pastas
 
+```bash
+
 ├── docs
 │  ├── arquitetura.drawio
 │  ├── arquitetura.png
@@ -169,5 +171,4 @@ make wire-gen
 │  │     └── subscription.go
 │  └── Makefile
 └── README.md
-
-
+```
