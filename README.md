@@ -18,7 +18,7 @@ Os diagramas do projeto podem ser encontrados na pasta `docs`.
 
 ## Documentação
 
-A documentação detalhada do projeto está disponível [**TODO: Adicionar o link da documentação aqui**].
+A documentação detalhada do projeto está disponível. [docs](https://github.com/lucasd-coder/cloudGauge/tree/master/docs)
 
 ## Como Rodar o Projeto
 
