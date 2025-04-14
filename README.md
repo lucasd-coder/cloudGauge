@@ -50,4 +50,122 @@ Para rodar todos os testes da aplicação, execute o seguinte comando:
 ```bash
 make test
 ```
+### 🧪 Gerar Mocks
+
+Para adicionar novos mocks, inclua o caminho das interfaces na variável MOCK_SOURCES dentro do Makefile:
+
+```bash
+make generate_mocks
+```
+
+### 🔗 Gerar Injeção de Dependências
+
+```bash
+make wire-gen
+```
+
+### 📎 Observações
+
+* **Certifique-se de que o Docker esteja instalado e rodando para utilizar os comandos de ambiente.**
+
+### 📁 Estrutura de Pastas
+
+├── docs
+│  ├── arquitetura.drawio
+│  ├── arquitetura.png
+│  ├── diagrama_classe.drawio
+│  ├── diagrama_classe.png
+│  ├── diagrama_simples.drawio
+│  └── diagrama_simples.png
+├── LICENSE
+├── pulseReceiver
+│  ├── cmd
+│  │  └── app
+│  │     └── main.go
+│  ├── config
+│  │  ├── config-dev.yml
+│  │  ├── config.go
+│  │  └── config.yml
+│  ├── coverage.out
+│  ├── docker-compose.yml
+│  ├── go.mod
+│  ├── go.sum
+│  ├── infra
+│  │  ├── docker
+│  │  │  └── Dockerfile
+│  │  ├── http
+│  │  │  ├── health.http
+│  │  │  └── usage_aggregation.http
+│  │  ├── kafka
+│  │  │  └── create-topics.sh
+│  │  └── postgres
+│  │     └── initdb.sh
+│  ├── internal
+│  │  ├── app
+│  │  │  └── app.go
+│  │  ├── controller
+│  │  │  ├── controller.go
+│  │  │  ├── controller_test.go
+│  │  │  └── usageaggregation.go
+│  │  ├── domain
+│  │  │  ├── usageaggregation
+│  │  │  │  ├── interfaces.go
+│  │  │  │  ├── repository
+│  │  │  │  │  ├── repository.go
+│  │  │  │  │  └── repository_test.go
+│  │  │  │  ├── service
+│  │  │  │  │  ├── service.go
+│  │  │  │  │  ├── usageaggregation_service.go
+│  │  │  │  │  └── usageaggregation_test.go
+│  │  │  │  ├── usageaggregation.go
+│  │  │  │  └── usageaggregation_test.go
+│  │  │  └── usageaggregationhistory
+│  │  │     ├── repository
+│  │  │     │  ├── repository.go
+│  │  │     │  └── repository_test.go
+│  │  │     ├── usageaggregationhistory.go
+│  │  │     └── usegeaggregationhistory_interfaces.go
+│  │  ├── inject
+│  │  │  ├── wire.go
+│  │  │  └── wire_gen.go
+│  │  ├── mocks
+│  │  │  ├── interfaces_mock.go
+│  │  │  ├── shared_mock.go
+│  │  │  └── usegeaggregationhistory_interfaces_mock.go
+│  │  ├── processor
+│  │  │  ├── processor.go
+│  │  │  └── processor_usageaggregation.go
+│  │  ├── provider
+│  │  │  ├── jobscheduled
+│  │  │  │  └── jobscheduler.go
+│  │  │  ├── kafka
+│  │  │  │  ├── publisher.go
+│  │  │  │  └── subscription.go
+│  │  │  ├── logger
+│  │  │  │  ├── interface.go
+│  │  │  │  └── slog.go
+│  │  │  ├── middleware
+│  │  │  │  └── logger.go
+│  │  │  ├── migrations
+│  │  │  │  └── migrations.go
+│  │  │  ├── postgres
+│  │  │  │  └── postgres.go
+│  │  │  └── validator
+│  │  │     ├── validator.go
+│  │  │     └── validator_test.go
+│  │  ├── scheduledtaskrunner
+│  │  │  ├── scheduledtaskrunner.go
+│  │  │  └── startdispatchscheduler.go
+│  │  ├── server
+│  │  │  └── server.go
+│  │  ├── shared
+│  │  │  ├── errors
+│  │  │  │  └── errors.go
+│  │  │  └── shared.go
+│  │  └── subscription
+│  │     ├── pulseReceiver.go
+│  │     └── subscription.go
+│  └── Makefile
+└── README.md
+
 
