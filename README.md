@@ -30,7 +30,7 @@ Certifique-se de ter o [Docker](https://www.docker.com/) e o [Make](https://www.
 
 Utilize o `Makefile` para facilitar a execução dos comandos Docker:
 
-* **Para subir a aplicação e reiniciar os containers (caso já existam):**
+* **Para subir a aplicação e subir os containers (para desenvolvimento):**
     ```bash
     make docker_restart
     ```
@@ -44,6 +44,20 @@ Utilize o `Makefile` para facilitar a execução dos comandos Docker:
     ```bash
     make run_application
     ```
+### Exemplo de contrato do servidor
+
+Acessar a pasta [http](https://github.com/lucasd-coder/cloudGauge/tree/master/pulseReceiver/infra/http)
+
+### Exemplo de Payload para publicar no Tópico
+
+```json
+{
+  "tenant": "Lucas", 
+  "product_sku": "vm",
+  "used_amount": 100,
+  "use_unity": "GB"
+}
+```
 
 ### Executando os Testes
 
