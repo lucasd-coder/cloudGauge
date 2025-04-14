@@ -3,53 +3,44 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/lucasd-coder/pulseReceiver/internal/provider/logger"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
 )
 
+var (
+	producer  *kafka.Producer
+	initOnce  sync.Once
+	initErr   error
+	publisher *Publisher
+)
+
 type Publisher struct {
-	opt     *shared.Options
-	publish *kafka.Producer
-	cleanup func()
+	opt *shared.Options
 }
 
-func NewPublisher(ctx context.Context, opt *shared.Options) (_ *Publisher, cleanup func(), err error) {
-	addCleanup := func(f func()) {
-		old := cleanup
-		cleanup = func() { old(); f() }
-	}
-
-	defer func() {
+func NewPublisher(opt *shared.Options) (_ *Publisher, err error) {
+	initOnce.Do(func() {
+		p, err := kafka.NewProducer(&kafka.ConfigMap{
+			"bootstrap.servers":         opt.URL,
+			"socket.timeout.ms":         10,
+			"message.timeout.ms":        10,
+			"go.delivery.report.fields": "key,value,headers",
+		})
 		if err != nil {
-			cleanup()
-			cleanup = nil
+			initErr = fmt.Errorf("failed to kafka.NewProducer: %w", err)
+			return
 		}
-	}()
 
-	cleanup = func() {}
-
-	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers":         opt.URL,
-		"socket.timeout.ms":         10,
-		"message.timeout.ms":        10,
-		"go.delivery.report.fields": "key,value,headers",
-	})
-	if err != nil {
-		return nil, cleanup, err
-	}
-	addCleanup(func() {
-		p.Close()
+		producer = p
+		publisher = &Publisher{
+			opt: opt,
+		}
 	})
 
-	logger.FromContext(ctx).Info("Created", "Producer", p)
-
-	return &Publisher{
-		opt:     opt,
-		publish: p,
-		cleanup: cleanup,
-	}, cleanup, nil
+	return publisher, initErr
 }
 
 func (p *Publisher) Publish(ctx context.Context, msg []byte) error {
@@ -60,7 +51,7 @@ func (p *Publisher) Publish(ctx context.Context, msg []byte) error {
 		Value:          msg,
 	}
 
-	if err := p.publish.Produce(m, deliveryChan); err != nil {
+	if err := producer.Produce(m, deliveryChan); err != nil {
 		return fmt.Errorf("error on produce message: %w", err)
 	}
 
@@ -79,4 +70,12 @@ func (p *Publisher) Publish(ctx context.Context, msg []byte) error {
 	}
 
 	return nil
+}
+
+func CloseProducer() {
+	if producer == nil {
+		return
+	}
+
+	producer.Close()
 }

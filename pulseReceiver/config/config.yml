@@ -3,16 +3,31 @@ app:
   version: 1.0.0
 
 logger:
-  log_level: ${LOG_LEVEL}
-  report-caller: false
+  log_level: info
 
 server:
-  port: ${HTTP_PORT}
+  port: 8085
   readTimeout: 10s
   writeTimeout: 10s
 
 integration:
-  otlp:
-    url: ${OTEL_EXPORTER_OTLP_ENDPOINT}
-    protocol: grpc
-    timeout: 20s
+  kafka:
+    url: kafka:9092
+    groupId: pulse-receiver
+    workTask: 5
+    batchSize: 10
+    batchLimit: 500
+    poll: 100
+  
+  postgres:
+    host: postgres
+    port: 5432
+    username: docker
+    password: docker
+    dbname: cloudgauge
+    schema: pulsereceiver
+    maxIdleConns: 10
+    MaxOpenConns: 100
+    
+  scheduled:
+    aggregateCurrentHour: 2m

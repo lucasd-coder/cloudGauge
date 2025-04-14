@@ -14,31 +14,18 @@ const (
 	StatusProcessed AggregationStatus = "processed"
 )
 
-type Base struct {
-	ID         uint      `gorm:"primaryKey"`
-	Tenant     string    `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-	ProductSKU string    `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-	UseUnity   string    `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-	HourWindow time.Time `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-
-	UsedAmount  float64           `gorm:"not null"`
-	Status      AggregationStatus `gorm:"not null;default:'pending'"`
-	LastAttempt time.Time
-	CreatedAt   time.Time
-}
-
 type UsageAggregation struct {
-	ID         uint      `gorm:"primaryKey"`
-	Tenant     string    `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-	ProductSKU string    `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-	UseUnity   string    `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
-	HourWindow time.Time `gorm:"not null;uniqueIndex:idx_aggregation_composite"`
+	ID         uint      `gorm:"primaryKey" json:"id,omitempty"`
+	Tenant     string    `gorm:"not null;uniqueIndex:idx_aggregation_composite" json:"tenant,omitempty"`
+	ProductSKU string    `gorm:"not null;uniqueIndex:idx_aggregation_composite" json:"product_sku,omitempty"`
+	UseUnity   string    `gorm:"not null;uniqueIndex:idx_aggregation_composite" json:"use_unity,omitempty"`
+	HourWindow time.Time `gorm:"not null;uniqueIndex:idx_aggregation_composite" json:"hour_window,omitempty"`
 
-	UsedAmount   float64           `gorm:"not null"`
-	Status       AggregationStatus `gorm:"not null;default:'pending'"`
-	LastAttempt  time.Time
-	CreatedAt    time.Time
-	ErrorMessage string
+	UsedAmount   float64           `gorm:"not null" json:"used_amount,omitempty"`
+	Status       AggregationStatus `gorm:"not null;default:'pending'" json:"-"`
+	LastAttempt  time.Time         `json:"last_attempt,omitempty"`
+	CreatedAt    time.Time         `json:"created_at,omitempty"`
+	ErrorMessage *string           `json:"-"`
 }
 
 type Payload struct {

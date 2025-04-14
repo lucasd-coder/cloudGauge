@@ -2,12 +2,16 @@
 
 echo "Criando tópicos no Kafka..."
 
-/usr/bin/kafka-topics \
-  --bootstrap-server kafka:9092 \
-  --create \
-  --if-not-exists \
-  --topic aggregated-pulses \
-  --partitions 1 \
-  --replication-factor 1
+TOPICS=("aggregated-pulses" "aggregated-to-process")
 
-echo "Tópico criado com sucesso!"
+for topic in "${TOPICS[@]}"; do
+  /usr/bin/kafka-topics \
+    --bootstrap-server kafka:9092 \
+    --create \
+    --if-not-exists \
+    --topic "$topic" \
+    --partitions 1 \
+    --replication-factor 1
+done
+
+echo "Tópicos criados com sucesso!"

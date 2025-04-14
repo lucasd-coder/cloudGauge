@@ -4,6 +4,6 @@ Content-Type: application/json
 {
   "tenant": "Lucas22",
   "product_sku": "vm",
-  "used_amount": 200,
-  "use_unity": "GB x seg"
+  "used_amount": 100,
+  "use_unity": "GB"
 }

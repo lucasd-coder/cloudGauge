@@ -32,6 +32,15 @@ func InitializeProcessor() *processor.Processor {
 	return processorProcessor
 }
 
+func InitializeUsageAggregationService() *service.ServiceImpl {
+	validation := &validator.Validation{}
+	db := postgres.GetConn()
+	usageAggregationRepository := repository.NewUsageAggregationRepository(db)
+	usageAggregationHistoryRepository := repository2.NewUsageAggregationHistoryRepository(db)
+	serviceImpl := service.NewService(validation, usageAggregationRepository, usageAggregationHistoryRepository)
+	return serviceImpl
+}
+
 func InitializeUsageAggregationController() *controller.UsageAggregationController {
 	validation := &validator.Validation{}
 	db := postgres.GetConn()

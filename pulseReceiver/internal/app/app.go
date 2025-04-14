@@ -10,8 +10,10 @@ import (
 	"syscall"
 
 	"github.com/lucasd-coder/pulseReceiver/config"
+	"github.com/lucasd-coder/pulseReceiver/internal/provider/kafka"
 	"github.com/lucasd-coder/pulseReceiver/internal/provider/logger"
 	"github.com/lucasd-coder/pulseReceiver/internal/provider/postgres"
+	"github.com/lucasd-coder/pulseReceiver/internal/scheduledtaskrunner"
 	"github.com/lucasd-coder/pulseReceiver/internal/server"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
 	"github.com/lucasd-coder/pulseReceiver/internal/subscription"
@@ -33,6 +35,9 @@ func Run(cfg *config.Config) {
 	// Postgres closes
 	defer postgres.CloseConn()
 
+	// Kafka Producer closes
+	defer kafka.CloseProducer()
+
 	// starting the server
 	wg.Add(1)
 	go func() {
@@ -47,6 +52,15 @@ func Run(cfg *config.Config) {
 	go func() {
 		defer wg.Done()
 		if err := subscription.Start(ctx); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// starting the
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := scheduledtaskrunner.Start(ctx); err != nil {
 			log.Fatal(err)
 		}
 	}()

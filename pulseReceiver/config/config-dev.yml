@@ -11,14 +11,10 @@ server:
   writeTimeout: 10s
 
 integration:
-  otlp:
-    url: localhost:4317
-    protocol: grpc
-    timeout: 20s
   kafka:
     url: localhost:29092
     groupId: pulse-receiver
-    workTask: 15
+    workTask: 5
     batchSize: 10
     batchLimit: 500
     poll: 100
@@ -32,3 +28,6 @@ integration:
     schema: pulsereceiver
     maxIdleConns: 10
     MaxOpenConns: 100
+    
+  scheduled:
+    aggregateCurrentHour: 2m

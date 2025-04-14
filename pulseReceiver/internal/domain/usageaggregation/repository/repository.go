@@ -55,3 +55,44 @@ func (r *UsageAggregationRepository) FindToDispatch(
 
 	return results, err
 }
+
+func (r *UsageAggregationRepository) FindPending(ctx context.Context) ([]usageaggregation.UsageAggregation, error) {
+	var records []usageaggregation.UsageAggregation
+	err := r.conn.WithContext(ctx).
+		Where("status IN ?", []usageaggregation.AggregationStatus{
+			usageaggregation.StatusPending,
+			usageaggregation.StatusError,
+		}).
+		Find(&records).Error
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
+}
+
+func (r *UsageAggregationRepository) UpdateStatusAfterAttempt(
+	ctx context.Context,
+	usage *usageaggregation.UsageAggregation,
+	success bool,
+	errorMessage *string,
+) error {
+	now := time.Now()
+
+	update := map[string]interface{}{
+		"last_attempt": now,
+	}
+
+	if success {
+		update["status"] = usageaggregation.StatusProcessed
+		update["error_message"] = nil
+	} else {
+		update["status"] = usageaggregation.StatusError
+		update["error_message"] = errorMessage
+	}
+
+	return r.conn.WithContext(ctx).
+		Model(&usageaggregation.UsageAggregation{}).
+		Where("tenant = ? AND product_sku = ? AND use_unity = ? AND hour_window = ?",
+			usage.Tenant, usage.ProductSKU, usage.UseUnity, usage.HourWindow).
+		Updates(update).Error
+}

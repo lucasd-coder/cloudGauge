@@ -11,6 +11,13 @@ type (
 			ctx context.Context,
 			tenant, sku, useUnity string,
 		) ([]UsageAggregation, error)
+		FindPending(ctx context.Context) ([]UsageAggregation, error)
+		UpdateStatusAfterAttempt(
+			ctx context.Context,
+			usage *UsageAggregation,
+			success bool,
+			errorMessage *string,
+		) error
 	}
 
 	UsageAggregationService interface {

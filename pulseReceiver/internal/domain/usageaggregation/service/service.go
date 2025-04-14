@@ -1,9 +1,13 @@
 package service
 
 import (
+	"log/slog"
+
 	"github.com/google/wire"
+	"github.com/lucasd-coder/pulseReceiver/config"
 	"github.com/lucasd-coder/pulseReceiver/internal/domain/usageaggregation"
 	"github.com/lucasd-coder/pulseReceiver/internal/domain/usageaggregationhistory"
+	"github.com/lucasd-coder/pulseReceiver/internal/provider/kafka"
 	"github.com/lucasd-coder/pulseReceiver/internal/shared"
 )
 
@@ -13,17 +17,29 @@ var InitializeService = wire.NewSet(
 )
 
 type ServiceImpl struct {
-	validate                           shared.Validator
-	repository                         usageaggregation.UsageAggregationRepository
-	usageAggregationHHistoryRepository usageaggregationhistory.UsageAggregationHistoryRepository
+	Validate                          shared.Validator
+	Repository                        usageaggregation.UsageAggregationRepository
+	UsageAggregationHistoryRepository usageaggregationhistory.UsageAggregationHistoryRepository
+	Publisher                         shared.Publisher
 }
 
 func NewService(val shared.Validator,
 	repo usageaggregation.UsageAggregationRepository,
 	historyRepo usageaggregationhistory.UsageAggregationHistoryRepository) *ServiceImpl {
+	cfg := config.GetConfig()
+
+	topicName := "aggregated-to-process"
+	opt := shared.NewOptions(cfg, topicName)
+
+	publisher, err := kafka.NewPublisher(opt)
+	if err != nil {
+		slog.Error("Error on kafka.NewPublisher", "error", err)
+		return nil
+	}
 	return &ServiceImpl{
-		validate:                           val,
-		repository:                         repo,
-		usageAggregationHHistoryRepository: historyRepo,
+		Validate:                          val,
+		Repository:                        repo,
+		UsageAggregationHistoryRepository: historyRepo,
+		Publisher:                         publisher,
 	}
 }

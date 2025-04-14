@@ -24,6 +24,9 @@ services:
       KAFKA_CREATE_TOPICS: "aggregated-pulses"
     volumes:
       - ./infra/kafka/create-topics.sh:/create-topics.sh
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     depends_on:
@@ -34,6 +37,9 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
   
   postgres:
     image: postgres
@@ -49,8 +55,33 @@ services:
     volumes:            
       - ./infra/postgres/initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
       - postgres_data:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     extra_hosts:
       - "host.docker.internal:172.17.0.1"
+  app:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile
+    image: golang-app
+    container_name: golang_app
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./config:/config:ro
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
 
 volumes:
   postgres_data:

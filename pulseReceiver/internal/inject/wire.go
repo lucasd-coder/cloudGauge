@@ -37,6 +37,11 @@ func InitializeProcessor() *processor.Processor {
 	return &processor.Processor{}
 }
 
+func InitializeUsageAggregationService() *service.ServiceImpl {
+	wire.Build(initializeUsageAggregationRepository, initializeUsageAggregationHistoryRepository, initializeValidator, postgres.GetConn, service.InitializeService)
+	return &service.ServiceImpl{}
+}
+
 func InitializeUsageAggregationController() *controller.UsageAggregationController {
 	wire.Build(initializeUsageAggregationRepository, initializeUsageAggregationHistoryRepository, initializeValidator, service.InitializeService, postgres.GetConn, controller.NewUsageAggregationController)
 	return &controller.UsageAggregationController{}

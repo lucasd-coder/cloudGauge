@@ -29,9 +29,9 @@ type (
 	}
 
 	Integration struct {
-		OpenTelemetry `env-required:"true" yaml:"otlp"`
-		Kafka         `env-required:"true" yaml:"kafka"`
-		Postgres      `env-required:"true" yaml:"postgres"`
+		Kafka     `env-required:"true" yaml:"kafka"`
+		Postgres  `env-required:"true" yaml:"postgres"`
+		Scheduled `env-required:"true" yaml:"scheduled"`
 	}
 
 	Kafka struct {
@@ -54,10 +54,8 @@ type (
 		MaxOpenConns int    `yaml:"MaxOpenConns"`
 	}
 
-	OpenTelemetry struct {
-		URL      string        `env-required:"true" yaml:"url" env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
-		Protocol string        `env-required:"true" yaml:"protocol" env:"OTEL_EXPORTER_OTLP_PROTOCOL"`
-		Timeout  time.Duration `env-required:"true" yaml:"timeout" env:"OTEL_EXPORTER_OTLP_TIMEOUT"`
+	Scheduled struct {
+		AggregateCurrentHour time.Duration `env-required:"true" yaml:"aggregateCurrentHour"`
 	}
 )
 

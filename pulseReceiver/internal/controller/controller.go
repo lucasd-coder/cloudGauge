@@ -41,6 +41,10 @@ func (c *controller) Response(ctx context.Context, w http.ResponseWriter, body i
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(statusCode)
 
+	if body == nil {
+		return
+	}
+
 	content, err := json.MarshalIndent(body, "", "  ")
 	if err != nil {
 		log.Error("err during json.Marchal", err)
