@@ -1,7 +1,7 @@
 # CloudGauge
 
 [![codecov](https://codecov.io/gh/lucasd-coder/cloudGauge/graph/badge.svg?token=9MYI8R7IYZ)](https://codecov.io/gh/lucasd-coder/cloudGauge)
-[![Documentation](https://img.shields.io/badge/Documentation-TODO-blue)](TODO) ## Tecnologias
+[![Documentation](https://img.shields.io/badge/Documentation-TODO-blue)](https://github.com/lucasd-coder/cloudGauge/docs) ## Tecnologias
 
 Este projeto utiliza as seguintes tecnologias:
 
